@@ -61,10 +61,24 @@ Question:
     # override the model through an env var so the project can stay up to date
     # without code changes.
     model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt
-    )
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt
+        )
+    except Exception as exc:  # we catch any error from the GenAI client
+        # the google-genai library raises ClientError for HTTP issues,
+        # so we can inspect it and raise a more meaningful message for callers.
+        from google.genai.errors import ClientError
+
+        if isinstance(exc, ClientError) and exc.status_code == 403:
+            # this typically means the API key is invalid or has been revoked
+            raise RuntimeError(
+                "Failed to generate content: API key permission denied. "
+                "Be sure to set a valid GEMINI_API_KEY and rotate it if leaked."
+            ) from exc
+        # re-raise for anything else
+        raise
 
     raw_text = response.text.strip()
 

@@ -26,7 +26,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://fictional-invention-jj4jgwpj66qcqvpw-3000.app.github.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -126,7 +126,14 @@ def ask_doubt(
             detail="Daily limit reached. Upgrade to Pro."
         )
 
-    answer = generate_doubt_solution(data.question, data.language)
+    try:
+        answer = generate_doubt_solution(data.question, data.language)
+    except RuntimeError as exc:
+        # propagate GenAI client errors as a 502 so the frontend can react
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc)
+        )
 
     user.daily_question_count += 1
     db.commit()

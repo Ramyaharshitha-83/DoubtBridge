@@ -1,0 +1,11 @@
+# ignore environment files containing sensitive keys
+backend/.env
+frontend/.env
+
+# python virtual environment and caches
+backend/venv/
+**/__pycache__/
+
+# node modules
+backend/node_modules/
+frontend/node_modules/

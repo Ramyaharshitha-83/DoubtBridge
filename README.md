@@ -13,6 +13,8 @@ python -m pip install -r requirements.txt
 Create a `.env` file in `backend/` containing:
 
 ```env
+# Make sure you obtain a fresh API key from your Google Cloud console.
+# If your previous key has been exposed or revoked, replace it here.
 GEMINI_API_KEY=your_key_here
 ```
 
