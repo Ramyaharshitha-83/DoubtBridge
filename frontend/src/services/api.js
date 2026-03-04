@@ -1,45 +1,34 @@
 import axios from "axios";
-import qs from "qs";
 
+// ── Exact same baseURL as your working single-file code ──────────────────────
 const API = axios.create({
   baseURL: "https://fictional-invention-jj4jgwpj66qcqvpw-8000.app.github.dev",
 });
 
-/* -------- REGISTER -------- */
-export const registerUser = (email, password) => {
-  return API.post("/register", { email, password });
+// ── REGISTER  POST /register ─────────────────────────────────────────────────
+export const registerUser = async (email, password) => {
+  const res = await API.post("/register", { email, password });
+  return res.data;
 };
 
-/* -------- LOGIN -------- */
+// ── LOGIN  POST /login  (x-www-form-urlencoded, same as working code) ─────────
 export const loginUser = async (email, password) => {
-  const response = await API.post(
+  const res = await API.post(
     "/login",
-    qs.stringify({
-      username: email,
-      password: password,
-    }),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
+    new URLSearchParams({ username: email, password }),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
-
-  localStorage.setItem("token", response.data.access_token);
-  return response;
+  localStorage.setItem("token", res.data.access_token);
+  return res.data;
 };
 
-/* -------- ASK DOUBT -------- */
-export const askDoubt = (question, language) => {
+// ── ASK DOUBT  POST /ask-doubt  Bearer token ─────────────────────────────────
+export const askDoubt = async (question, language) => {
   const token = localStorage.getItem("token");
-
-  return API.post(
+  const res = await API.post(
     "/ask-doubt",
     { question, language },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    { headers: { Authorization: `Bearer ${token}` } }
   );
+  return res.data;
 };

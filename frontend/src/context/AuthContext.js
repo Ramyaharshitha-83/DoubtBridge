@@ -1,65 +1,44 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, useContext, useState, useEffect } from "react";
+import { registerUser, loginUser } from "../services/api";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const navigate = useNavigate();
+  const [user, setUser]       = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [token, setToken] = useState(null);
-  const [userEmail, setUserEmail] = useState(null);
-
-  // Decode JWT to extract email
-  const decodeAndSetUser = useCallback((jwtToken) => {
-    try {
-      const payload = JSON.parse(atob(jwtToken.split(".")[1]));
-      setUserEmail(payload.sub); // your backend stores email in "sub"
-    } catch (err) {
-      console.error("Invalid token");
-      setToken(null);
-      setUserEmail(null);
-    }
+  // Restore session on reload
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const email = localStorage.getItem("userEmail");
+    if (token && email) setUser({ email, token });
+    setLoading(false);
   }, []);
 
-  // Load token from localStorage on first load
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+  const register = async (email, password) => {
+    return await registerUser(email, password); // returns { message }
+  };
 
-    if (storedToken) {
-      setToken(storedToken);
-      decodeAndSetUser(storedToken);
-    }
-  }, [decodeAndSetUser]);
-
-  const login = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-    decodeAndSetUser(newToken);
-    navigate("/dashboard");
+  const login = async (email, password) => {
+    const data = await loginUser(email, password); // stores token in localStorage
+    localStorage.setItem("userEmail", email);
+    setUser({ email, token: data.access_token });
+    return data;
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    setToken(null);
-    setUserEmail(null);
-    navigate("/");
+    localStorage.removeItem("userEmail");
+    setUser(null);
   };
 
-  const isAuthenticated = !!token;
-
   return (
-    <AuthContext.Provider
-      value={{
-        token,
-        userEmail,
-        isAuthenticated,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

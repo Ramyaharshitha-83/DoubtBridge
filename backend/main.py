@@ -24,12 +24,14 @@ app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fictional-invention-jj4jgwpj66qcqvpw-3000.app.github.dev"],
+    allow_origins=["*"],          # allows ALL origins (Codespaces safe)
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],          # allows GET, POST, OPTIONS, etc.
+    allow_headers=["*"],          # allows Authorization, Content-Type, etc.
 )
 
 # ----------------------------
